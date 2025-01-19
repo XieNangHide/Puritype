@@ -1,3 +1,9 @@
+from typing import Tuple, Dict, Any
+import torch
+from torch_geometric.data import DataLoader
+from torch.optim import Adam
+from torch.nn import BCELoss
+
 from config import Config
 from data.data_preprocessing import DataPreprocessor
 from causal.causal_discovery import CausalDiscovery
@@ -6,10 +12,26 @@ from models.gnn_model import GNNRecommender
 from models.causal_gnn_model import CausalGNNRecommender
 from evaluation.metrics import RecommenderEvaluator
 from utils.utils import set_seed, split_data, create_edge_index
-import torch
-from torch_geometric.data import DataLoader
 
-def train_model(model, train_loader, optimizer, criterion, device):
+def train_model(
+    model: torch.nn.Module,
+    train_loader: DataLoader,
+    optimizer: Adam,
+    criterion: BCELoss,
+    device: torch.device
+) -> float:
+    """Train model for one epoch.
+    
+    Args:
+        model: The neural network model to train
+        train_loader: DataLoader containing training data
+        optimizer: Optimizer for updating model parameters
+        criterion: Loss function
+        device: Device to run computations on (CPU/GPU)
+        
+    Returns:
+        float: Average loss for the epoch
+    """
     model.train()
     total_loss = 0
     
@@ -18,7 +40,7 @@ def train_model(model, train_loader, optimizer, criterion, device):
         optimizer.zero_grad()
         
         # Forward pass
-        pred = model.predict(batch.user_idx, batch.item_idx)
+        pred = model.predict(batch.user_idx, batch.item_idx, batch.edge_index)
         loss = criterion(pred, batch.y)
         
         # Backward pass
@@ -29,7 +51,8 @@ def train_model(model, train_loader, optimizer, criterion, device):
         
     return total_loss / len(train_loader)
 
-def main():
+def main() -> None:
+    """Main execution function for the recommendation system."""
     # Validate paths
     Config.validate_paths()
     
@@ -85,9 +108,9 @@ def main():
     evaluator = RecommenderEvaluator(k_values=Config.TOP_K)
     
     # Train and evaluate models
-    criterion = torch.nn.BCELoss()
-    base_optimizer = torch.optim.Adam(base_model.parameters(), lr=Config.LEARNING_RATE)
-    causal_optimizer = torch.optim.Adam(causal_model.parameters(), lr=Config.LEARNING_RATE)
+    criterion = BCELoss()
+    base_optimizer = Adam(base_model.parameters(), lr=Config.LEARNING_RATE)
+    causal_optimizer = Adam(causal_model.parameters(), lr=Config.LEARNING_RATE)
     
     # Create data loaders
     train_loader = DataLoader(data[train_indices], batch_size=Config.BATCH_SIZE, shuffle=True)

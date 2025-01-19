@@ -21,19 +21,30 @@ class DataPreprocessor:
         """Load and preprocess the UserBehavior dataset"""
         print("Loading data...")
         try:
+            # Read CSV with header row
             self.data = pd.read_csv(
-                self.file_path, 
-                names=['user_id', 'item_id', 'category_id', 'behavior_type', 'timestamp'],
+                self.file_path,
+                header=0,  # Read first row as header
                 dtype={
-                    'user_id': np.int64,
-                    'item_id': np.int64,
-                    'category_id': np.int64,
-                    'behavior_type': str,
+                    'userid': np.int64,
+                    'itemid': np.int64,
+                    'categoryid': np.int64,
+                    'type': str,
                     'timestamp': np.int64
                 },
                 low_memory=False
             )
+            
+            # Rename columns to match our expected format
+            self.data = self.data.rename(columns={
+                'userid': 'user_id',
+                'itemid': 'item_id',
+                'categoryid': 'category_id',
+                'type': 'behavior_type'
+            })
+            
             return self.data
+            
         except Exception as e:
             raise RuntimeError(f"Error loading data: {str(e)}")
     
