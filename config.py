@@ -2,7 +2,7 @@ import os
 
 class Config:
     # Data paths
-    DATA_PATH = os.path.join("/kaggle/input/taobao1m", "UserBehavior.csv")
+    DATA_PATH = os.path.join("/kaggle/input/taobao1m", "Taobao1M.csv")
     
     # Model parameters
     HIDDEN_CHANNELS = 64
