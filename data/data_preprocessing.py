@@ -94,6 +94,13 @@ class DataPreprocessor:
         """Run all preprocessing steps"""
         try:
             self.load_data()
+            
+            # Validate data
+            print("Data statistics:")
+            print(self.data.describe())
+            print("\nMissing values:")
+            print(self.data.isnull().sum())
+            
             self.create_mappings()
             self.encode_behavior()
             self.process_timestamps()
