@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, SAGEConv
-from torch_geometric.data import Data
+from torch_geometric.nn import SAGEConv
 
 class CausalGNNRecommender(nn.Module):
     def __init__(self, num_users, num_items, hidden_channels, num_layers, dropout, causal_adj):
@@ -11,6 +10,8 @@ class CausalGNNRecommender(nn.Module):
         self.num_users = num_users
         self.num_items = num_items
         self.hidden_channels = hidden_channels
+        
+        # Convert causal adjacency matrix to tensor and ensure it's float
         self.causal_adj = torch.tensor(causal_adj, dtype=torch.float32)
         
         # User and item embeddings
@@ -29,7 +30,11 @@ class CausalGNNRecommender(nn.Module):
         self.dropout = dropout
         
     def apply_causal_attention(self, x):
-        # Apply causal attention using causal adjacency matrix
+        """Apply causal attention using causal adjacency matrix"""
+        # Ensure causal_adj is on the same device as x
+        self.causal_adj = self.causal_adj.to(x.device)
+        
+        # Apply attention
         attention_weights = torch.matmul(
             self.causal_attention(x),
             self.causal_adj
@@ -60,7 +65,7 @@ class CausalGNNRecommender(nn.Module):
         return user_embeddings, item_embeddings
     
     def predict(self, user_indices, item_indices, edge_index):
-        """Predict interaction scores for user-item pairs with causal attention"""
+        """Predict interaction scores for user-item pairs"""
         user_embeddings, item_embeddings = self.forward(edge_index)
         
         # Get specific user and item embeddings
