@@ -30,15 +30,20 @@ def train_model(model, train_loader, optimizer, criterion, device):
     return total_loss / len(train_loader)
 
 def main():
+    # Validate paths
+    Config.validate_paths()
+    
     # Set random seed and device
     set_seed(Config.SEED)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Initialize data preprocessor
-    preprocessor = DataPreprocessor(Config.DATA_PATH)
-    
-    # Preprocess data
-    data, interaction_matrix = preprocessor.preprocess()
+    try:
+        preprocessor = DataPreprocessor(Config.DATA_PATH)
+        data, interaction_matrix = preprocessor.preprocess()
+    except Exception as e:
+        print(f"Error during data preprocessing: {str(e)}")
+        return
     
     # Split data
     train_indices, val_indices, test_indices = split_data(data)

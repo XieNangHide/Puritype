@@ -2,7 +2,7 @@ import os
 
 class Config:
     # Data paths
-    DATA_PATH = "/kaggle/input/taobao1m/Taobao1M.csv"
+    DATA_PATH = os.path.join("/kaggle/input/taobao1m", "UserBehavior.csv")
     
     # Model parameters
     HIDDEN_CHANNELS = 64
@@ -19,4 +19,10 @@ class Config:
     SEED = 42
     
     # Evaluation metrics
-    TOP_K = [5, 10, 20] 
+    TOP_K = [5, 10, 20]
+    
+    @staticmethod
+    def validate_paths():
+        """Validate that all required paths exist"""
+        if not os.path.exists(Config.DATA_PATH):
+            raise FileNotFoundError(f"Data file not found at {Config.DATA_PATH}") 

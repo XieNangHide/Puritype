@@ -1,9 +1,16 @@
-import pandas as pd
-import numpy as np
-from datetime import datetime
+try:
+    import pandas as pd
+    import numpy as np
+    from datetime import datetime
+except ImportError as e:
+    raise ImportError(f"Required package not found. Please install requirements.txt: {str(e)}")
 
 class DataPreprocessor:
     def __init__(self, file_path):
+        """Initialize the DataPreprocessor with the path to the data file"""
+        if not isinstance(file_path, str):
+            raise TypeError("file_path must be a string")
+            
         self.file_path = file_path
         self.data = None
         self.user_mapping = {}
@@ -13,9 +20,22 @@ class DataPreprocessor:
     def load_data(self):
         """Load and preprocess the UserBehavior dataset"""
         print("Loading data...")
-        self.data = pd.read_csv(self.file_path, 
-                              names=['user_id', 'item_id', 'category_id', 'behavior_type', 'timestamp'])
-        return self.data
+        try:
+            self.data = pd.read_csv(
+                self.file_path, 
+                names=['user_id', 'item_id', 'category_id', 'behavior_type', 'timestamp'],
+                dtype={
+                    'user_id': np.int64,
+                    'item_id': np.int64,
+                    'category_id': np.int64,
+                    'behavior_type': str,
+                    'timestamp': np.int64
+                },
+                low_memory=False
+            )
+            return self.data
+        except Exception as e:
+            raise RuntimeError(f"Error loading data: {str(e)}")
     
     def create_mappings(self):
         """Create mappings for user, item and category IDs"""
@@ -38,6 +58,10 @@ class DataPreprocessor:
     def process_timestamps(self):
         """Process timestamps into datetime and add time-based features"""
         print("Processing timestamps...")
+        # Convert timestamp column to numeric, handling any string values
+        self.data['timestamp'] = pd.to_numeric(self.data['timestamp'], errors='coerce')
+        
+        # Convert to datetime
         self.data['datetime'] = pd.to_datetime(self.data['timestamp'], unit='s')
         self.data['hour'] = self.data['datetime'].dt.hour
         self.data['day'] = self.data['datetime'].dt.day
@@ -57,11 +81,15 @@ class DataPreprocessor:
     
     def preprocess(self):
         """Run all preprocessing steps"""
-        self.load_data()
-        self.create_mappings()
-        self.encode_behavior()
-        self.process_timestamps()
-        interaction_matrix = self.create_interaction_matrix()
-        
-        print("Preprocessing completed!")
-        return self.data, interaction_matrix 
+        try:
+            self.load_data()
+            self.create_mappings()
+            self.encode_behavior()
+            self.process_timestamps()
+            interaction_matrix = self.create_interaction_matrix()
+            
+            print("Preprocessing completed!")
+            return self.data, interaction_matrix
+        except Exception as e:
+            print(f"Error during preprocessing: {str(e)}")
+            raise 
