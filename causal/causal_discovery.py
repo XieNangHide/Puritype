@@ -35,12 +35,7 @@ class CausalDiscovery:
         feature_means = np.mean(feature_array, axis=0)
         feature_stds = np.std(feature_array, axis=0)
         standardized_features = (feature_array - feature_means) / (feature_stds + 1e-8)
-        
-        # Sample data if too large (PC algorithm can be slow on large datasets)
-        if len(standardized_features) > 10000:
-            indices = np.random.choice(len(standardized_features), 10000, replace=False)
-            standardized_features = standardized_features[indices]
-        
+
         print(f"Feature shape: {standardized_features.shape}")
         print(f"Feature statistics: \nMean: {np.mean(standardized_features, axis=0)}\nStd: {np.std(standardized_features, axis=0)}")
         
